@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
 func TestFileRead(t *testing.T) {
@@ -19,10 +21,5 @@ func TestFileRead(t *testing.T) {
 	}
 
 	dosHeaderData := pe.DosHeader.Data
-
-	got := dosHeaderData.Lfanew
-	want := uint32(0xc0)
-	if got != want {
-		t.Errorf("dosHeaderData.Lfanew: got %x, wanted %x", got, want)
-	}
+	assert.Equal(t, dosHeaderData.Lfanew, uint32(0xc0))
 }
