@@ -18,6 +18,10 @@ func NewHeader[T any](reader io.ReaderAt, offset *int64) *Header[T] {
 	return &h
 }
 
+func (h *Header[T]) Write(writer io.Writer) error {
+	return binary.Write(writer, binary.LittleEndian, h.Data)
+}
+
 // Dos Header data
 type DosHeader struct {
 	Magic    uint16     // Magic number
