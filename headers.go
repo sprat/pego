@@ -12,10 +12,15 @@ type Header[T any] struct {
 
 func NewHeader[T any](reader io.ReaderAt, offset *int64) *Header[T] {
 	h := Header[T]{}
-	r := io.NewSectionReader(reader, *offset, getStructSize[T]())
+	size := h.Size()
+	r := io.NewSectionReader(reader, *offset, size)
 	binary.Read(r, binary.LittleEndian, &h.Data)
-	*offset += r.Size()
+	*offset += size
 	return &h
+}
+
+func (h *Header[T]) Size() int64 {
+	return getStructSize[T]()
 }
 
 func (h *Header[T]) Write(writer io.Writer) error {

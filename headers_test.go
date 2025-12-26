@@ -19,6 +19,9 @@ func TestHeader(t *testing.T) {
 	offset := int64(0)
 	header := NewHeader[DosHeader](f, &offset)
 
+	// the size is correct
+	assert.Equal(t, header.Size(), int64(64))
+
 	// the offset is increased
 	assert.Equal(t, offset, int64(64))
 

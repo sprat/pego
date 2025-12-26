@@ -14,6 +14,10 @@ func NewSegment(reader io.ReaderAt, offset *int64, size int64) *Segment {
 	}
 }
 
+func (s *Segment) Size() int64 {
+	return s.reader.Size()
+}
+
 func (s *Segment) Write(writer io.Writer) error {
 	_, err := io.Copy(writer, s.reader)
 	s.reader.Seek(0, io.SeekStart)

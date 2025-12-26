@@ -14,6 +14,9 @@ func TestSegment(t *testing.T) {
 	offset := int64(0)
 	segment := NewSegment(reader, &offset, 4)
 
+	// the size is correct
+	assert.Equal(t, segment.Size(), int64(4))
+
 	// the offset is increased
 	assert.Equal(t, offset, int64(4))
 
