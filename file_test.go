@@ -19,4 +19,7 @@ func TestFileRead(t *testing.T) {
 	// DosHeader
 	assert.Equal(t, pe.DosHeader.Size(), int64(0x40))
 	assert.Equal(t, pe.DosHeader.Data.Lfanew, uint32(0xc0))
+
+	// DosStub
+	assert.Equal(t, pe.DosStub.Size(), int64(0x80))
 }

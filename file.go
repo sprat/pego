@@ -8,6 +8,7 @@ import (
 // Represents a PE file structure
 type PE struct {
 	DosHeader *Header[DosHeader]
+	DosStub   *Segment
 }
 
 // NewPE creates a PE instance
@@ -20,7 +21,13 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		return nil, errors.New("Invalid DOS Header Magic")
 	}
 
+	// Dos Stub
+	peHeaderOffset := int64(dosHeader.Data.Lfanew)
+	dosStubSize := peHeaderOffset - offset
+	dosStub := NewSegment(reader, &offset, dosStubSize)
+
 	return &PE{
 		DosHeader: dosHeader,
+		DosStub:   dosStub,
 	}, nil
 }
