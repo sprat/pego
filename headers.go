@@ -1,7 +1,6 @@
 package pego
 
 import (
-	"debug/pe"
 	"encoding/binary"
 	"io"
 )
@@ -31,8 +30,8 @@ func (h *Header[T]) Write(writer io.Writer) error {
 	return binary.Write(writer, binary.LittleEndian, h.Data)
 }
 
-// Dos Header data
-type DosHeader struct {
+// DOS Header data
+type DOSHeader struct {
 	Magic    uint16     // Magic number
 	Cblp     uint16     // Bytes on last page of file
 	Cp       uint16     // Pages in file
@@ -54,7 +53,4 @@ type DosHeader struct {
 	Lfanew   uint32     // File address of new exe header
 }
 
-type PEHeader struct {
-	Magic uint32 // Magic number
-	pe.FileHeader
-}
+type PESignature uint32

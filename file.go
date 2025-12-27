@@ -1,48 +1,56 @@
 package pego
 
 import (
+	"debug/pe"
 	"errors"
 	"io"
 )
 
 // Represents a PE file structure
 type PE struct {
-	DosHeader *Header[DosHeader]
-	DosStub   *Segment
-	PEHeader  *Header[PEHeader]
+	DOSHeader   *Header[DOSHeader]
+	DOSStub     *Segment
+	PESignature *Header[PESignature]
+	COFFHeader  *Header[pe.FileHeader]
 }
 
 // NewPE creates a PE instance
 func NewPE(reader io.ReaderAt) (*PE, error) {
 	offset := int64(0)
 
-	// Dos Header
-	dosHeader, err := NewHeader[DosHeader](reader, &offset)
+	// DOS Header
+	dosHeader, err := NewHeader[DOSHeader](reader, &offset)
 	if err != nil {
 		return nil, err
 	}
-
 	if dosHeader.Data.Magic != 0x5a4d {
 		return nil, errors.New("invalid DOS Header Signature")
 	}
 
-	// Dos Stub
+	// DOS Stub
 	peHeaderOffset := int64(dosHeader.Data.Lfanew)
 	dosStubSize := peHeaderOffset - offset
 	dosStub := NewSegment(reader, &offset, dosStubSize)
 
-	// PE Header
-	peHeader, err := NewHeader[PEHeader](reader, &offset)
+	// PE Signature
+	peSignature, err := NewHeader[PESignature](reader, &offset)
 	if err != nil {
 		return nil, err
 	}
-	if peHeader.Data.Magic != 0x00004550 {
-		return nil, errors.New("invalid PE Header Signature")
+	if peSignature.Data != 0x00004550 {
+		return nil, errors.New("invalid PE Signature")
+	}
+
+	// COFF Header
+	coffHeader, err := NewHeader[pe.FileHeader](reader, &offset)
+	if err != nil {
+		return nil, err
 	}
 
 	return &PE{
-		DosHeader: dosHeader,
-		DosStub:   dosStub,
-		PEHeader:  peHeader,
+		DOSHeader:   dosHeader,
+		DOSStub:     dosStub,
+		PESignature: peSignature,
+		COFFHeader:  coffHeader,
 	}, nil
 }

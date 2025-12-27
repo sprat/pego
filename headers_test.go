@@ -16,7 +16,7 @@ func TestHeaderValid(t *testing.T) {
 	defer f.Close()
 
 	offset := int64(0)
-	header, err := NewHeader[DosHeader](f, &offset)
+	header, err := NewHeader[DOSHeader](f, &offset)
 
 	// the size is correct
 	assert.Equal(t, header.Size(), int64(64))
@@ -45,7 +45,7 @@ func TestHeaderUnexpectedEOF(t *testing.T) {
 	var data []byte = []byte{0x11, 0x22, 0x33, 0x44}
 	reader := bytes.NewReader(data)
 	offset := int64(0)
-	header, err := NewHeader[DosHeader](reader, &offset)
+	header, err := NewHeader[DOSHeader](reader, &offset)
 	assert.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	assert.Assert(t, header == nil)
 	assert.Equal(t, offset, int64(0))
