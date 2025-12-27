@@ -11,13 +11,16 @@ type Header[T any] struct {
 	Data T
 }
 
-func NewHeader[T any](reader io.ReaderAt, offset *int64) *Header[T] {
+func NewHeader[T any](reader io.ReaderAt, offset *int64) (*Header[T], error) {
 	h := Header[T]{}
 	size := h.Size()
 	r := io.NewSectionReader(reader, *offset, size)
-	binary.Read(r, binary.LittleEndian, &h.Data)
+	err := binary.Read(r, binary.LittleEndian, &h.Data)
+	if err != nil {
+		return nil, err
+	}
 	*offset += size
-	return &h
+	return &h, nil
 }
 
 func (h *Header[T]) Size() int64 {

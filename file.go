@@ -17,7 +17,11 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	offset := int64(0)
 
 	// Dos Header
-	dosHeader := NewHeader[DosHeader](reader, &offset)
+	dosHeader, err := NewHeader[DosHeader](reader, &offset)
+	if err != nil {
+		return nil, err
+	}
+
 	if dosHeader.Data.Magic != 0x5a4d {
 		return nil, errors.New("invalid DOS Header Signature")
 	}
@@ -28,7 +32,10 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	dosStub := NewSegment(reader, &offset, dosStubSize)
 
 	// PE Header
-	peHeader := NewHeader[PEHeader](reader, &offset)
+	peHeader, err := NewHeader[PEHeader](reader, &offset)
+	if err != nil {
+		return nil, err
+	}
 	if peHeader.Data.Magic != 0x00004550 {
 		return nil, errors.New("invalid PE Header Signature")
 	}

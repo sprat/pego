@@ -2,6 +2,7 @@ package pego
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,13 +10,13 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func TestHeader(t *testing.T) {
+func TestHeaderValid(t *testing.T) {
 	f, err := os.Open(filepath.Join("testfiles", "piano.exe"))
-	assert.NilError(t, err, "Cannot open test file")
+	assert.NilError(t, err)
 	defer f.Close()
 
 	offset := int64(0)
-	header := NewHeader[DosHeader](f, &offset)
+	header, err := NewHeader[DosHeader](f, &offset)
 
 	// the size is correct
 	assert.Equal(t, header.Size(), int64(64))
@@ -38,4 +39,14 @@ func TestHeader(t *testing.T) {
 	buffer.Reset()
 	header.Write(&buffer)
 	assert.Equal(t, buffer.Len(), 64)
+}
+
+func TestHeaderUnexpectedEOF(t *testing.T) {
+	var data []byte = []byte{0x11, 0x22, 0x33, 0x44}
+	reader := bytes.NewReader(data)
+	offset := int64(0)
+	header, err := NewHeader[DosHeader](reader, &offset)
+	assert.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	assert.Assert(t, header == nil)
+	assert.Equal(t, offset, int64(0))
 }
