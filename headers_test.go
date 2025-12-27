@@ -11,9 +11,7 @@ import (
 
 func TestHeader(t *testing.T) {
 	f, err := os.Open(filepath.Join("testfiles", "piano.exe"))
-	if err != nil {
-		t.Fatal("Cannot open test file")
-	}
+	assert.NilError(t, err, "Cannot open test file")
 	defer f.Close()
 
 	offset := int64(0)
