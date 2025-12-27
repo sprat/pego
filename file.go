@@ -9,6 +9,7 @@ import (
 type PE struct {
 	DosHeader *Header[DosHeader]
 	DosStub   *Segment
+	PEHeader  *Header[PEHeader]
 }
 
 // NewPE creates a PE instance
@@ -26,8 +27,15 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	dosStubSize := peHeaderOffset - offset
 	dosStub := NewSegment(reader, &offset, dosStubSize)
 
+	// PE Header
+	peHeader := NewHeader[PEHeader](reader, &offset)
+	if peHeader.Data.Magic != 0x00004550 {
+		return nil, errors.New("invalid PE Header Signature")
+	}
+
 	return &PE{
 		DosHeader: dosHeader,
 		DosStub:   dosStub,
+		PEHeader:  peHeader,
 	}, nil
 }

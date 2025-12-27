@@ -1,6 +1,7 @@
 package pego
 
 import (
+	"debug/pe"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,17 +10,23 @@ import (
 )
 
 func TestFileRead(t *testing.T) {
-	f, err := os.Open(filepath.Join("testfiles", "piano.exe"))
+	file, err := os.Open(filepath.Join("testfiles", "piano.exe"))
 	assert.NilError(t, err, "Cannot open test file")
-	defer f.Close()
+	defer file.Close()
 
-	pe, err := NewPE(f)
-	assert.NilError(t, err, "Invalid PE file")
+	peFile, err := NewPE(file)
+	assert.NilError(t, err, "Cannot parse PE file")
 
 	// DosHeader
-	assert.Equal(t, pe.DosHeader.Size(), int64(0x40))
-	assert.Equal(t, pe.DosHeader.Data.Lfanew, uint32(0xc0))
+	assert.Equal(t, peFile.DosHeader.Size(), int64(64))
+	assert.Equal(t, peFile.DosHeader.Data.Lfanew, uint32(64+128))
 
 	// DosStub
-	assert.Equal(t, pe.DosStub.Size(), int64(0x80))
+	assert.Equal(t, peFile.DosStub.Size(), int64(128))
+
+	// PEHeader
+	assert.Equal(t, peFile.PEHeader.Size(), int64(24))
+	assert.Equal(t, peFile.PEHeader.Data.Machine, uint16(pe.IMAGE_FILE_MACHINE_I386))
+	assert.Equal(t, peFile.PEHeader.Data.NumberOfSections, uint16(3))
+	assert.Equal(t, peFile.PEHeader.Data.SizeOfOptionalHeader, uint16(224))
 }

@@ -1,6 +1,7 @@
 package pego
 
 import (
+	"debug/pe"
 	"encoding/binary"
 	"io"
 )
@@ -48,4 +49,9 @@ type DosHeader struct {
 	Oeminfo  uint16     // OEM information; e_oemid specific
 	Res2     [10]uint16 // Reserved uint16s
 	Lfanew   uint32     // File address of new exe header
+}
+
+type PEHeader struct {
+	Magic uint32 // Magic number
+	pe.FileHeader
 }
