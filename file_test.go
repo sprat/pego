@@ -10,16 +10,13 @@ import (
 
 func TestFileRead(t *testing.T) {
 	f, err := os.Open(filepath.Join("testfiles", "piano.exe"))
-	if err != nil {
-		t.Fatal("Cannot open test file")
-	}
+	assert.NilError(t, err, "Cannot open test file")
 	defer f.Close()
 
 	pe, err := NewPE(f)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err, "Invalid PE file")
 
-	dosHeaderData := pe.DosHeader.Data
-	assert.Equal(t, dosHeaderData.Lfanew, uint32(0xc0))
+	// DosHeader
+	assert.Equal(t, pe.DosHeader.Size(), int64(0x40))
+	assert.Equal(t, pe.DosHeader.Data.Lfanew, uint32(0xc0))
 }
