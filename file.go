@@ -18,7 +18,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	// Dos Header
 	dosHeader := NewHeader[DosHeader](reader, &offset)
 	if dosHeader.Data.Magic != 0x5a4d {
-		return nil, errors.New("Invalid DOS Header Magic")
+		return nil, errors.New("invalid DOS Header Signature")
 	}
 
 	// Dos Stub
