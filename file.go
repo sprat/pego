@@ -23,22 +23,27 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	if err != nil {
 		return nil, err
 	}
-	if dosHeader.Data.Magic != 0x5a4d {
-		return nil, errors.New("invalid DOS Header Signature")
-	}
 
-	// DOS Stub
-	peHeaderOffset := int64(dosHeader.Data.Lfanew)
-	dosStubSize := peHeaderOffset - offset
-	dosStub := NewSegment(reader, &offset, dosStubSize)
+	var dosStub *Segment = nil
+	var peSignature *Header[PESignature] = nil
 
-	// PE Signature
-	peSignature, err := NewHeader[PESignature](reader, &offset)
-	if err != nil {
-		return nil, err
-	}
-	if peSignature.Data != 0x00004550 {
-		return nil, errors.New("invalid PE Signature")
+	if dosHeader.Data.Magic == 0x5a4d {
+		// DOS Stub
+		peHeaderOffset := int64(dosHeader.Data.Lfanew)
+		dosStubSize := peHeaderOffset - offset
+		dosStub = NewSegment(reader, &offset, dosStubSize)
+
+		// PE Signature
+		peSignature, err = NewHeader[PESignature](reader, &offset)
+		if err != nil {
+			return nil, err
+		}
+		if peSignature.Data != 0x00004550 {
+			return nil, errors.New("invalid PE Signature")
+		}
+	} else {
+		offset = 0
+		dosHeader = nil
 	}
 
 	// COFF Header
@@ -46,6 +51,9 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: check coffHeader.Data.Machine
+	// TODO: add protections to defend against malicious files (e.g. oversized segments...)
 
 	return &PE{
 		DOSHeader:   dosHeader,
