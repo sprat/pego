@@ -16,6 +16,8 @@ type PE struct {
 
 // NewPE creates a PE instance
 func NewPE(reader io.ReaderAt) (*PE, error) {
+	var dosStub *Segment
+	var peSignature *Header[PESignature]
 	offset := int64(0)
 
 	// DOS Header
@@ -23,9 +25,6 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	var dosStub *Segment = nil
-	var peSignature *Header[PESignature] = nil
 
 	if dosHeader.Data.Magic == 0x5a4d {
 		// DOS Stub
