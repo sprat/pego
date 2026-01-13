@@ -2,7 +2,7 @@ package pego
 
 import (
 	"debug/pe"
-	"errors"
+	"fmt"
 	"io"
 )
 
@@ -38,7 +38,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 			return nil, err
 		}
 		if peSignature.Data != 0x00004550 {
-			return nil, errors.New("invalid PE Signature")
+			return nil, fmt.Errorf("invalid PE file signature: %#x", peSignature.Data)
 		}
 	} else {
 		offset = 0
