@@ -58,3 +58,6 @@ const DOS_HEADER_MAGIC = 0x5a4d
 type PESignature uint32
 
 const PE_SIGNATURE = 0x00004550  // 'P', 'E', 0, 0
+
+const PE32_MAGIC = 0x10b
+const PE32_PLUS_MAGIC = 0x20b

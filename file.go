@@ -2,6 +2,7 @@ package pego
 
 import (
 	"debug/pe"
+	"encoding/binary"
 	"fmt"
 	"io"
 )
@@ -12,6 +13,8 @@ type PE struct {
 	DOSStub     *Segment
 	PESignature *Header[PESignature]
 	COFFHeader  *Header[pe.FileHeader]
+	OptionalHeader32 *Header[pe.OptionalHeader32]
+	OptionalHeader64 *Header[pe.OptionalHeader64]
 }
 
 // NewPE creates a PE instance
@@ -50,6 +53,26 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	// make sure the machine type is valid
 	if !isValidMachine(p.COFFHeader.Data.Machine) {
 		return nil, fmt.Errorf("unrecognized PE machine: %#x", p.COFFHeader.Data.Machine)
+	}
+
+	// Optional Header
+	if p.COFFHeader.Data.SizeOfOptionalHeader > 0 {
+		var magicBytes [2]byte
+		reader.ReadAt(magicBytes[:], offset)
+		magic := binary.LittleEndian.Uint16(magicBytes[:])
+
+		switch magic {
+		case PE32_MAGIC:
+			p.OptionalHeader32, err = NewHeader[pe.OptionalHeader32](reader, &offset)
+		case PE32_PLUS_MAGIC:
+			p.OptionalHeader64, err = NewHeader[pe.OptionalHeader64](reader, &offset)
+		default:
+			err = fmt.Errorf("invalid optional header magic: %#x", magic)
+		}
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// TODO: add protections to defend against malicious files (e.g. oversized segments...)
