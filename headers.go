@@ -53,4 +53,8 @@ type DOSHeader struct {
 	Lfanew   uint32     // File address of new exe header
 }
 
+const DOS_HEADER_MAGIC = 0x5a4d
+
 type PESignature uint32
+
+const PE_SIGNATURE = 0x00004550  // 'P', 'E', 0, 0
