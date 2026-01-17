@@ -21,7 +21,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 
 	// DOS Header
 	dosHeader, err := NewHeader[DOSHeader](reader, &offset)
-	if err == nil && dosHeader.Data.Magic == 0x5a4d {
+	if err == nil && dosHeader.Data.Magic == DOS_HEADER_MAGIC {
 		p.DOSHeader = dosHeader
 
 		// DOS Stub
@@ -34,7 +34,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		if err != nil {
 			return nil, err
 		}
-		if p.PESignature.Data != 0x00004550 {
+		if p.PESignature.Data != PE_SIGNATURE {
 			return nil, fmt.Errorf("invalid PE file signature: %#x", p.PESignature.Data)
 		}
 	} else {
