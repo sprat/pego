@@ -1,6 +1,7 @@
 package pego
 
 import (
+	"debug/pe"
 	"encoding/binary"
 	"io"
 )
@@ -53,11 +54,12 @@ type DOSHeader struct {
 	Lfanew   uint32     // File address of new exe header
 }
 
-const DOS_HEADER_MAGIC = 0x5a4d
-
 type PESignature uint32
+type COFFHeader pe.FileHeader
+type OptionalHeader32 pe.OptionalHeader32
+type OptionalHeader64 pe.OptionalHeader64
 
+const DOS_HEADER_MAGIC = 0x5a4d
 const PE_SIGNATURE = 0x00004550  // 'P', 'E', 0, 0
-
 const PE32_MAGIC = 0x10b
 const PE32_PLUS_MAGIC = 0x20b
