@@ -35,6 +35,26 @@ func TestFilePianoExe(t *testing.T) {
 	assert.Equal(t, p.OptionalHeader32.SizeOfImage, uint32(0x630))
 	assert.Equal(t, p.OptionalHeader32.SizeOfHeaders, uint32(0x230))
 	assert.Assert(t, p.OptionalHeader64 == nil)
+
+	// Sections
+	assert.Equal(t, len(p.Sections), 3)
+	s0 := p.Sections[0]
+	assert.Equal(t, s0.Name(), ".")
+	assert.Equal(t, s0.Header.VirtualSize, uint32(0x33c))
+	assert.Equal(t, s0.Header.VirtualAddress, uint32(0x230))
+	assert.Equal(t, s0.Segment.Size(), int64(0x340))
+
+	s1 := p.Sections[1]
+	assert.Equal(t, s1.Name(), ".data")
+	assert.Equal(t, s1.Header.VirtualSize, uint32(0x6a))
+	assert.Equal(t, s1.Header.VirtualAddress, uint32(0x570))
+	assert.Equal(t, s1.Segment.Size(), int64(0x70))
+
+	s2 := p.Sections[2]
+	assert.Equal(t, s2.Name(), ".reloc")
+	assert.Equal(t, s2.Header.VirtualSize, uint32(0x4c))
+	assert.Equal(t, s2.Header.VirtualAddress, uint32(0x5e0))
+	assert.Equal(t, s2.Segment.Size(), int64(0x50))
 }
 
 // TestFileReadTruncated verifies that NewPE returns an error when the input is truncated at various points.
