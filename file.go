@@ -15,6 +15,7 @@ type PE struct {
 	COFFHeader       *pe.FileHeader
 	OptionalHeader32 *pe.OptionalHeader32
 	OptionalHeader64 *pe.OptionalHeader64
+	Sections         []*Section
 }
 
 // NewPE parses a Portable Executable or plain COFF file from reader.
@@ -99,6 +100,17 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		if optionalHeaderSize != expectedSize {
 			return nil, fmt.Errorf("optional header size does not match the expected size: %#x != %#x", optionalHeaderSize, expectedSize)
 		}
+	}
+
+	// Sections
+	numSections := int(p.COFFHeader.NumberOfSections)
+	p.Sections = make([]*Section, numSections)
+	for i := range numSections {
+		section, err := NewSection(reader, &offset)
+		if err != nil {
+			return nil, err
+		}
+		p.Sections[i] = section
 	}
 
 	// TODO: add protections to defend against malicious files (e.g. oversized segments...)
