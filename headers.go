@@ -11,6 +11,7 @@ type Header[T any] struct {
 	Data T
 }
 
+// NewHeader reads a header of type T from reader at the given offset, advances the offset by the size of T, and returns the header.
 func NewHeader[T any](reader io.ReaderAt, offset *int64) (*Header[T], error) {
 	h := Header[T]{}
 	size := h.Size()
@@ -23,10 +24,12 @@ func NewHeader[T any](reader io.ReaderAt, offset *int64) (*Header[T], error) {
 	return &h, nil
 }
 
+// Size returns the size of the header data in bytes.
 func (h *Header[T]) Size() int64 {
 	return getStructSize[T]()
 }
 
+// Write serializes the header data to the writer in little-endian byte order.
 func (h *Header[T]) Write(writer io.Writer) error {
 	return binary.Write(writer, binary.LittleEndian, h.Data)
 }
@@ -54,9 +57,16 @@ type DOSHeader struct {
 	Lfanew   uint32     // File address of new exe header.
 }
 
+// PESignature is the PE file signature type.
 type PESignature uint32
+
+// COFFHeader contains the COFF file header data.
 type COFFHeader pe.FileHeader
+
+// OptionalHeader32 contains the PE32 optional header data.
 type OptionalHeader32 pe.OptionalHeader32
+
+// OptionalHeader64 contains the PE32+ optional header data.
 type OptionalHeader64 pe.OptionalHeader64
 
 const (

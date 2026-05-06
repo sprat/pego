@@ -37,7 +37,7 @@ func TestHeaderValid(t *testing.T) {
 }
 
 func TestHeaderUnexpectedEOF(t *testing.T) {
-	var data []byte = []byte{0x11, 0x22, 0x33, 0x44}
+	data := []byte{0x11, 0x22, 0x33, 0x44}
 	reader := bytes.NewReader(data)
 	offset := int64(0)
 	header, err := NewHeader[DOSHeader](reader, &offset)
