@@ -59,7 +59,7 @@ type COFFHeader pe.FileHeader
 type OptionalHeader32 pe.OptionalHeader32
 type OptionalHeader64 pe.OptionalHeader64
 
-const DOS_HEADER_MAGIC = 0x5a4d
-const PE_SIGNATURE = 0x00004550  // 'P', 'E', 0, 0
-const PE32_MAGIC = 0x10b
-const PE32_PLUS_MAGIC = 0x20b
+const DOSHeaderMagic = 0x5a4d
+const PESignatureMagic PESignature = 0x00004550 // 'P', 'E', 0, 0
+const PE32Magic = 0x10b
+const PE32PlusMagic = 0x20b

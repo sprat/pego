@@ -9,10 +9,10 @@ import (
 
 // Represents a PE file structure
 type PE struct {
-	DOSHeader   *Header[DOSHeader]
-	DOSStub     *Segment
-	PESignature *Header[PESignature]
-	COFFHeader  *Header[COFFHeader]
+	DOSHeader        *Header[DOSHeader]
+	DOSStub          *Segment
+	PESignature      *Header[PESignature]
+	COFFHeader       *Header[COFFHeader]
 	OptionalHeader32 *Header[OptionalHeader32]
 	OptionalHeader64 *Header[OptionalHeader64]
 }
@@ -24,7 +24,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 
 	// DOS Header
 	dosHeader, err := NewHeader[DOSHeader](reader, &offset)
-	if err == nil && dosHeader.Data.Magic == DOS_HEADER_MAGIC {
+	if err == nil && dosHeader.Data.Magic == DOSHeaderMagic {
 		p.DOSHeader = dosHeader
 
 		// DOS Stub
@@ -37,7 +37,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		if err != nil {
 			return nil, err
 		}
-		if p.PESignature.Data != PE_SIGNATURE {
+		if p.PESignature.Data != PESignatureMagic {
 			return nil, fmt.Errorf("invalid PE file signature: %#x", p.PESignature.Data)
 		}
 	} else {
@@ -61,15 +61,15 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		var magicBytes [2]byte
 		var expectedSize uint16
 
-		// read the
+		// read the magic number to determine if it's PE32 or PE32+
 		reader.ReadAt(magicBytes[:], offset)
 		magic := binary.LittleEndian.Uint16(magicBytes[:])
 
 		switch magic {
-		case PE32_MAGIC:
+		case PE32Magic:
 			p.OptionalHeader32, err = NewHeader[OptionalHeader32](reader, &offset)
 			expectedSize = uint16(p.OptionalHeader32.Size())
-		case PE32_PLUS_MAGIC:
+		case PE32PlusMagic:
 			p.OptionalHeader64, err = NewHeader[OptionalHeader64](reader, &offset)
 			expectedSize = uint16(p.OptionalHeader64.Size())
 		default:
