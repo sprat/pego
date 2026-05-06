@@ -26,7 +26,7 @@ func NewHeader[T any](reader io.ReaderAt, offset *int64) (*Header[T], error) {
 
 // Size returns the size of the header data in bytes.
 func (h *Header[T]) Size() int64 {
-	return getStructSize[T]()
+	return int64(binary.Size(h.Data))
 }
 
 // Write serializes the header data to the writer in little-endian byte order.

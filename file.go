@@ -61,7 +61,6 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	optionalHeaderSize := p.COFFHeader.Data.SizeOfOptionalHeader
 	if optionalHeaderSize > 0 {
 		var magicBytes [2]byte
-		var expectedSize uint16
 
 		// Read the magic number to determine if it's PE32 or PE32+.
 		_, err = reader.ReadAt(magicBytes[:], offset)
@@ -73,16 +72,21 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		switch magic {
 		case PE32Magic:
 			p.OptionalHeader32, err = NewHeader[OptionalHeader32](reader, &offset)
-			expectedSize = uint16(p.OptionalHeader32.Size())
 		case PE32PlusMagic:
 			p.OptionalHeader64, err = NewHeader[OptionalHeader64](reader, &offset)
-			expectedSize = uint16(p.OptionalHeader64.Size())
 		default:
 			err = fmt.Errorf("invalid optional header magic: %#x", magic)
 		}
 
 		if err != nil {
 			return nil, err
+		}
+
+		var expectedSize uint16
+		if p.OptionalHeader32 != nil {
+			expectedSize = uint16(p.OptionalHeader32.Size())
+		} else {
+			expectedSize = uint16(p.OptionalHeader64.Size())
 		}
 
 		if optionalHeaderSize != expectedSize {
