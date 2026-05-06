@@ -22,13 +22,13 @@ func TestSegment(t *testing.T) {
 
 	// We can write the data to a buffer.
 	var buffer bytes.Buffer
-	segment.Write(&buffer)
+	assert.NilError(t, segment.Write(&buffer))
 	assert.Equal(t, buffer.Len(), 4)
 	assert.Equal(t, buffer.Bytes()[0], byte(0x11))
 	assert.Equal(t, buffer.Bytes()[1], byte(0x22))
 
 	// We can write the data again.
 	buffer.Reset()
-	segment.Write(&buffer)
+	assert.NilError(t, segment.Write(&buffer))
 	assert.Equal(t, buffer.Len(), 4)
 }

@@ -25,14 +25,14 @@ func TestHeaderValid(t *testing.T) {
 
 	// We can write the data to a buffer.
 	var buffer bytes.Buffer
-	header.Write(&buffer)
+	assert.NilError(t, header.Write(&buffer))
 	assert.Equal(t, buffer.Len(), 64)
 	assert.Equal(t, buffer.Bytes()[0], byte(0x4d))
 	assert.Equal(t, buffer.Bytes()[1], byte(0x5a))
 
 	// We can write the data again.
 	buffer.Reset()
-	header.Write(&buffer)
+	assert.NilError(t, header.Write(&buffer))
 	assert.Equal(t, buffer.Len(), 64)
 }
 
