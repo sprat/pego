@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-// Header wraps a PE header data structure
+// Header wraps a PE header data structure.
 type Header[T any] struct {
 	Data T
 }
@@ -31,27 +31,27 @@ func (h *Header[T]) Write(writer io.Writer) error {
 	return binary.Write(writer, binary.LittleEndian, h.Data)
 }
 
-// DOS Header data
+// DOSHeader contains the DOS header data.
 type DOSHeader struct {
-	Magic    uint16     // Magic number
-	Cblp     uint16     // Bytes on last page of file
-	Cp       uint16     // Pages in file
-	Crlc     uint16     // Relocations
-	Cparhdr  uint16     // Size of header in paragraphs
-	Minalloc uint16     // Minimum extra paragraphs needed
-	Maxalloc uint16     // Maximum extra paragraphs needed
-	Ss       uint16     // Initial (relative) SS value
-	Sp       uint16     // Initial SP value
-	Csum     uint16     // Checksum
-	Ip       uint16     // Initial IP value
-	Cs       uint16     // Initial (relative) CS value
-	Lfarlc   uint16     // File address of relocation table
-	Ovno     uint16     // Overlay number
-	Res      [4]uint16  // Reserved uint16s
-	Oemid    uint16     // OEM identifier (for e_oeminfo)
-	Oeminfo  uint16     // OEM information; e_oemid specific
-	Res2     [10]uint16 // Reserved uint16s
-	Lfanew   uint32     // File address of new exe header
+	Magic    uint16     // Magic number.
+	Cblp     uint16     // Bytes on last page of file.
+	Cp       uint16     // Pages in file.
+	Crlc     uint16     // Relocations.
+	Cparhdr  uint16     // Size of header in paragraphs.
+	Minalloc uint16     // Minimum extra paragraphs needed.
+	Maxalloc uint16     // Maximum extra paragraphs needed.
+	Ss       uint16     // Initial (relative) SS value.
+	Sp       uint16     // Initial SP value.
+	Csum     uint16     // Checksum.
+	Ip       uint16     // Initial IP value.
+	Cs       uint16     // Initial (relative) CS value.
+	Lfarlc   uint16     // File address of relocation table.
+	Ovno     uint16     // Overlay number.
+	Res      [4]uint16  // Reserved uint16s.
+	Oemid    uint16     // OEM identifier (for e_oeminfo).
+	Oeminfo  uint16     // OEM information; e_oemid specific.
+	Res2     [10]uint16 // Reserved uint16s.
+	Lfanew   uint32     // File address of new exe header.
 }
 
 type PESignature uint32

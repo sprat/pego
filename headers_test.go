@@ -18,24 +18,24 @@ func TestHeaderValid(t *testing.T) {
 	offset := int64(0)
 	header, err := NewHeader[DOSHeader](f, &offset)
 
-	// the size is correct
+	// The size is correct.
 	assert.Equal(t, header.Size(), int64(64))
 
-	// the offset is increased
+	// The offset is increased.
 	assert.Equal(t, offset, int64(64))
 
-	// we read the data correctly
+	// We read the data correctly.
 	assert.Equal(t, header.Data.Magic, uint16(0x5a4d))
 	assert.Equal(t, header.Data.Lfanew, uint32(0xc0))
 
-	// we can write the data to a buffer
+	// We can write the data to a buffer.
 	var buffer bytes.Buffer
 	header.Write(&buffer)
 	assert.Equal(t, buffer.Len(), 64)
 	assert.Equal(t, buffer.Bytes()[0], byte(0x4d))
 	assert.Equal(t, buffer.Bytes()[1], byte(0x5a))
 
-	// we can write the data again
+	// We can write the data again.
 	buffer.Reset()
 	header.Write(&buffer)
 	assert.Equal(t, buffer.Len(), 64)
