@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-// Represents a PE file structure
+// PE represents a Portable Executable file structure.
 type PE struct {
 	DOSHeader        *Header[DOSHeader]
 	DOSStub          *Segment

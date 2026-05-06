@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-// Header
+// Header wraps a PE header data structure
 type Header[T any] struct {
 	Data T
 }
@@ -59,7 +59,9 @@ type COFFHeader pe.FileHeader
 type OptionalHeader32 pe.OptionalHeader32
 type OptionalHeader64 pe.OptionalHeader64
 
-const DOSHeaderMagic = 0x5a4d
-const PESignatureMagic PESignature = 0x00004550 // 'P', 'E', 0, 0
-const PE32Magic = 0x10b
-const PE32PlusMagic = 0x20b
+const (
+	DOSHeaderMagic               = 0x5a4d
+	PESignatureMagic PESignature = 0x00004550 // 'P', 'E', 0, 0
+	PE32Magic                    = 0x10b
+	PE32PlusMagic                = 0x20b
+)
