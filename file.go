@@ -41,6 +41,8 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 			return nil, fmt.Errorf("invalid PE file signature: %#x", p.PESignature.Data)
 		}
 	} else {
+		// Not a PE file with a DOS header, treat as a plain COFF file.
+		// It will fail later if the COFF header is not valid.
 		offset = 0
 	}
 
@@ -62,9 +64,12 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		var expectedSize uint16
 
 		// Read the magic number to determine if it's PE32 or PE32+.
-		reader.ReadAt(magicBytes[:], offset)
-		magic := binary.LittleEndian.Uint16(magicBytes[:])
+		_, err = reader.ReadAt(magicBytes[:], offset)
+		if err != nil {
+			return nil, io.ErrUnexpectedEOF
+		}
 
+		magic := binary.LittleEndian.Uint16(magicBytes[:])
 		switch magic {
 		case PE32Magic:
 			p.OptionalHeader32, err = NewHeader[OptionalHeader32](reader, &offset)
