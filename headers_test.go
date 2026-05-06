@@ -3,20 +3,15 @@ package pego
 import (
 	"bytes"
 	"io"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"gotest.tools/v3/assert"
 )
 
 func TestHeaderValid(t *testing.T) {
-	f, err := os.Open(filepath.Join("testfiles", "piano.exe"))
-	assert.NilError(t, err)
-	defer f.Close()
-
 	offset := int64(0)
-	header, err := NewHeader[DOSHeader](f, &offset)
+	header, err := NewHeader[DOSHeader](openTestFile(t, "piano.exe"), &offset)
+	assert.NilError(t, err)
 
 	// The size is correct.
 	assert.Equal(t, header.Size(), int64(64))
