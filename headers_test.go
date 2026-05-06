@@ -20,7 +20,7 @@ func TestHeaderValid(t *testing.T) {
 	assert.Equal(t, offset, int64(64))
 
 	// We read the data correctly.
-	assert.Equal(t, header.Data.Magic, uint16(0x5a4d))
+	assert.Equal(t, header.Data.Magic, uint16(DOSHeaderMagic))
 	assert.Equal(t, header.Data.Lfanew, uint32(0xc0))
 
 	// We can write the data to a buffer.
