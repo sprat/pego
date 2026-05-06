@@ -1,7 +1,9 @@
 package pego
 
 import (
+	"bytes"
 	"debug/pe"
+	"encoding/binary"
 	"io"
 	"testing"
 
@@ -39,7 +41,24 @@ func TestFileReadExe(t *testing.T) {
 	assert.Assert(t, p.OptionalHeader64 == nil)
 }
 
-// TestFileReadTruncated verifies that NewPE returns an error when the input is truncated at various points.
+func TestFileOverlappingHeaders(t *testing.T) {
+	// Minimal EXE where the PE structure starts inside the DOS header area (Lfanew = 4).
+	// This is a degenerate but valid technique used by size-optimized executables.
+	// The DOS stub should be absent since Lfanew points before the end of the DOS header.
+	data := make([]byte, 64)
+	binary.LittleEndian.PutUint16(data[0:], DOSHeaderMagic)              // MZ magic.
+	binary.LittleEndian.PutUint32(data[4:], uint32(PESignatureMagic))    // PE signature at offset 4.
+	binary.LittleEndian.PutUint16(data[8:], pe.IMAGE_FILE_MACHINE_AMD64) // COFF machine type.
+	binary.LittleEndian.PutUint32(data[60:], 0x04)                       // Lfanew = 4 (inside DOS header).
+
+	p, err := NewPE(bytes.NewReader(data))
+	assert.NilError(t, err)
+	assert.Assert(t, p.DOSHeader != nil)
+	assert.Assert(t, p.DOSStub == nil) // No stub since Lfanew points inside the DOS header.
+	assert.Assert(t, p.PESignature != nil)
+	assert.Equal(t, p.COFFHeader.Data.Machine, uint16(pe.IMAGE_FILE_MACHINE_AMD64))
+}
+
 func TestFileReadTruncated(t *testing.T) {
 	tests := []struct {
 		name string
