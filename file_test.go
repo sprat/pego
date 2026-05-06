@@ -45,10 +45,10 @@ func TestFileReadTruncated(t *testing.T) {
 		name string
 		size int64
 	}{
-		{"PESignature",         0xc1},
-		{"COFFHeader",          0xc8},
+		{"PESignature", 0xc1},
+		{"COFFHeader", 0xc8},
 		{"OptionalHeaderMagic", 0xd8},
-		{"OptionalHeader",      0xda},
+		{"OptionalHeader", 0xda},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

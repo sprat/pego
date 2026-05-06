@@ -17,7 +17,9 @@ type PE struct {
 	OptionalHeader64 *Header[OptionalHeader64]
 }
 
-// NewPE creates a PE instance.
+// NewPE parses a Portable Executable or plain COFF file from reader.
+// It supports both PE files (with a DOS header) and plain COFF object files.
+// Returns an error if the input is malformed or truncated.
 func NewPE(reader io.ReaderAt) (*PE, error) {
 	p := PE{}
 	offset := int64(0)
@@ -99,6 +101,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	return &p, nil
 }
 
+// isValidMachine reports whether the given machine type is a known PE machine value.
 func isValidMachine(machine uint16) bool {
 	// TODO: technically it's ok, but should we restrict to the supported architectures in Golang like debug/pe?
 	switch machine {
