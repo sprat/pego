@@ -17,22 +17,22 @@ type PE struct {
 	OptionalHeader64 *Header[OptionalHeader64]
 }
 
-// NewPE creates a PE instance
+// NewPE creates a PE instance.
 func NewPE(reader io.ReaderAt) (*PE, error) {
 	p := PE{}
 	offset := int64(0)
 
-	// DOS Header
+	// DOS Header.
 	dosHeader, err := NewHeader[DOSHeader](reader, &offset)
 	if err == nil && dosHeader.Data.Magic == DOSHeaderMagic {
 		p.DOSHeader = dosHeader
 
-		// DOS Stub
+		// DOS Stub.
 		peHeaderOffset := int64(dosHeader.Data.Lfanew)
 		dosStubSize := peHeaderOffset - offset
 		p.DOSStub = NewSegment(reader, &offset, dosStubSize)
 
-		// PE Signature
+		// PE Signature.
 		p.PESignature, err = NewHeader[PESignature](reader, &offset)
 		if err != nil {
 			return nil, err
@@ -44,24 +44,24 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		offset = 0
 	}
 
-	// COFF Header
+	// COFF Header.
 	p.COFFHeader, err = NewHeader[COFFHeader](reader, &offset)
 	if err != nil {
 		return nil, err
 	}
 
-	// make sure the machine type is valid
+	// Make sure the machine type is valid.
 	if !isValidMachine(p.COFFHeader.Data.Machine) {
 		return nil, fmt.Errorf("unrecognized PE machine: %#x", p.COFFHeader.Data.Machine)
 	}
 
-	// Optional Header
+	// Optional Header.
 	optionalHeaderSize := p.COFFHeader.Data.SizeOfOptionalHeader
 	if optionalHeaderSize > 0 {
 		var magicBytes [2]byte
 		var expectedSize uint16
 
-		// read the magic number to determine if it's PE32 or PE32+
+		// Read the magic number to determine if it's PE32 or PE32+.
 		reader.ReadAt(magicBytes[:], offset)
 		magic := binary.LittleEndian.Uint16(magicBytes[:])
 

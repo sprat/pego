@@ -14,20 +14,20 @@ func TestSegment(t *testing.T) {
 	offset := int64(0)
 	segment := NewSegment(reader, &offset, 4)
 
-	// the size is correct
+	// The size is correct.
 	assert.Equal(t, segment.Size(), int64(4))
 
-	// the offset is increased
+	// The offset is increased.
 	assert.Equal(t, offset, int64(4))
 
-	// we can write the data to a buffer
+	// We can write the data to a buffer.
 	var buffer bytes.Buffer
 	segment.Write(&buffer)
 	assert.Equal(t, buffer.Len(), 4)
 	assert.Equal(t, buffer.Bytes()[0], byte(0x11))
 	assert.Equal(t, buffer.Bytes()[1], byte(0x22))
 
-	// we can write the data again
+	// We can write the data again.
 	buffer.Reset()
 	segment.Write(&buffer)
 	assert.Equal(t, buffer.Len(), 4)
