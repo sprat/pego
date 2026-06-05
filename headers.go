@@ -71,7 +71,7 @@ type OptionalHeader64 pe.OptionalHeader64
 
 const (
 	DOSHeaderMagic               = 0x5a4d       // 'M', 'Z'
-	PESignatureMagic PESignature = 0x00004550 // 'P', 'E', 0, 0
+	PESignatureMagic PESignature = 0x00004550   // 'P', 'E', 0, 0
 	PE32Magic                    = 0x10b
 	PE32PlusMagic                = 0x20b
 )
