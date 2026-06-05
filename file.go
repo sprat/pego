@@ -32,7 +32,12 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		// DOS Stub.
 		peHeaderOffset := int64(dosHeader.Data.Lfanew)
 		dosStubSize := peHeaderOffset - offset
-		p.DOSStub = NewSegment(reader, &offset, dosStubSize)
+		if dosStubSize > 0 {
+			p.DOSStub = NewSegment(reader, &offset, dosStubSize)
+		} else {
+			// Degenerate case: Lfanew points before or at the end of the DOS header.
+			offset = peHeaderOffset
+		}
 
 		// PE Signature.
 		p.PESignature, err = NewHeader[PESignature](reader, &offset)

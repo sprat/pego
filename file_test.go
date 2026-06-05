@@ -8,7 +8,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func TestFileReadExe(t *testing.T) {
+func TestFilePianoExe(t *testing.T) {
 	p, err := NewPE(openTestFile(t, "piano.exe"))
 	assert.NilError(t, err)
 
