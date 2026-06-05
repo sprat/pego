@@ -1,7 +1,6 @@
 package pego
 
 import (
-	"debug/pe"
 	"encoding/binary"
 	"io"
 )
@@ -60,17 +59,8 @@ type DOSHeader struct {
 // PESignature is the PE file signature type.
 type PESignature uint32
 
-// COFFHeader contains the COFF file header data.
-type COFFHeader pe.FileHeader
-
-// OptionalHeader32 contains the PE32 optional header data.
-type OptionalHeader32 pe.OptionalHeader32
-
-// OptionalHeader64 contains the PE32+ optional header data.
-type OptionalHeader64 pe.OptionalHeader64
-
 const (
-	DOSHeaderMagic               = 0x5a4d       // 'M', 'Z'
+	DOSHeaderMagic   uint16      = 0x5a4d       // 'M', 'Z'
 	PESignatureMagic PESignature = 0x00004550   // 'P', 'E', 0, 0
 	PE32Magic                    = 0x10b
 	PE32PlusMagic                = 0x20b
