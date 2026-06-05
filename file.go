@@ -12,9 +12,9 @@ type PE struct {
 	DOSHeader        *Header[DOSHeader]
 	DOSStub          *Segment
 	PESignature      *Header[PESignature]
-	COFFHeader       *Header[COFFHeader]
-	OptionalHeader32 *Header[OptionalHeader32]
-	OptionalHeader64 *Header[OptionalHeader64]
+	COFFHeader       *Header[pe.FileHeader]
+	OptionalHeader32 *Header[pe.OptionalHeader32]
+	OptionalHeader64 *Header[pe.OptionalHeader64]
 }
 
 // NewPE parses a Portable Executable or plain COFF file from reader.
@@ -54,7 +54,7 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	}
 
 	// COFF Header.
-	p.COFFHeader, err = NewHeader[COFFHeader](reader, &offset)
+	p.COFFHeader, err = NewHeader[pe.FileHeader](reader, &offset)
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +78,9 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		magic := binary.LittleEndian.Uint16(magicBytes[:])
 		switch magic {
 		case PE32Magic:
-			p.OptionalHeader32, err = NewHeader[OptionalHeader32](reader, &offset)
+			p.OptionalHeader32, err = NewHeader[pe.OptionalHeader32](reader, &offset)
 		case PE32PlusMagic:
-			p.OptionalHeader64, err = NewHeader[OptionalHeader64](reader, &offset)
+			p.OptionalHeader64, err = NewHeader[pe.OptionalHeader64](reader, &offset)
 		default:
 			err = fmt.Errorf("invalid optional header magic: %#x", magic)
 		}
