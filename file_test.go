@@ -37,7 +37,31 @@ func TestFilePianoExe(t *testing.T) {
 	assert.Assert(t, p.OptionalHeader64 == nil)
 }
 
-// TestFileReadTruncated verifies that NewPE returns an error when the input is truncated at various points.
+func TestFile268Exe(t *testing.T) {
+	// 268.exe is a minimal 268-byte EXE where the PE structure starts inside the DOS header
+	// area (Lfanew = 4). This is a degenerate but valid technique used by size-optimized executables.
+	p, err := NewPE(openTestFile(t, "268.exe"))
+	assert.NilError(t, err)
+
+	// DOS Header.
+	assert.Assert(t, p.DOSHeader != nil)
+	assert.Equal(t, p.DOSHeader.Lfanew, uint32(0x04))
+
+	// No DOS stub since Lfanew points inside the DOS header.
+	assert.Assert(t, p.DOSStub == nil)
+
+	// PE Signature.
+	assert.Assert(t, p.PESignature != nil)
+
+	// COFF Header.
+	assert.Equal(t, p.COFFHeader.Machine, uint16(pe.IMAGE_FILE_MACHINE_AMD64))
+	assert.Equal(t, p.COFFHeader.NumberOfSections, uint16(1))
+
+	// Optional Header (PE32+).
+	assert.Assert(t, p.OptionalHeader64 != nil)
+	assert.Assert(t, p.OptionalHeader32 == nil)
+}
+
 func TestFileReadTruncated(t *testing.T) {
 	tests := []struct {
 		name string
