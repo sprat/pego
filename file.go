@@ -9,12 +9,12 @@ import (
 
 // PE represents a Portable Executable file structure.
 type PE struct {
-	DOSHeader        *Header[DOSHeader]
+	DOSHeader        *DOSHeader
 	DOSStub          *Segment
-	PESignature      *Header[PESignature]
-	COFFHeader       *Header[pe.FileHeader]
-	OptionalHeader32 *Header[pe.OptionalHeader32]
-	OptionalHeader64 *Header[pe.OptionalHeader64]
+	PESignature      *PESignature
+	COFFHeader       *pe.FileHeader
+	OptionalHeader32 *pe.OptionalHeader32
+	OptionalHeader64 *pe.OptionalHeader64
 }
 
 // NewPE parses a Portable Executable or plain COFF file from reader.
@@ -25,12 +25,12 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	offset := int64(0)
 
 	// DOS Header.
-	dosHeader, err := NewHeader[DOSHeader](reader, &offset)
-	if err == nil && dosHeader.Data.Magic == DOSHeaderMagic {
+	dosHeader, err := readHeader[DOSHeader](reader, &offset)
+	if err == nil && dosHeader.Magic == DOSHeaderMagic {
 		p.DOSHeader = dosHeader
 
 		// DOS Stub.
-		peHeaderOffset := int64(dosHeader.Data.Lfanew)
+		peHeaderOffset := int64(dosHeader.Lfanew)
 		dosStubSize := peHeaderOffset - offset
 		if dosStubSize > 0 {
 			p.DOSStub = NewSegment(reader, &offset, dosStubSize)
@@ -40,12 +40,12 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		}
 
 		// PE Signature.
-		p.PESignature, err = NewHeader[PESignature](reader, &offset)
+		p.PESignature, err = readHeader[PESignature](reader, &offset)
 		if err != nil {
 			return nil, err
 		}
-		if p.PESignature.Data != PESignatureMagic {
-			return nil, fmt.Errorf("invalid PE file signature: %#x", p.PESignature.Data)
+		if *p.PESignature != PESignatureMagic {
+			return nil, fmt.Errorf("invalid PE file signature: %#x", *p.PESignature)
 		}
 	} else {
 		// Not a PE file with a DOS header, treat as a plain COFF file.
@@ -54,18 +54,18 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	}
 
 	// COFF Header.
-	p.COFFHeader, err = NewHeader[pe.FileHeader](reader, &offset)
+	p.COFFHeader, err = readHeader[pe.FileHeader](reader, &offset)
 	if err != nil {
 		return nil, err
 	}
 
 	// Make sure the machine type is valid.
-	if !isValidMachine(p.COFFHeader.Data.Machine) {
-		return nil, fmt.Errorf("unrecognized PE machine: %#x", p.COFFHeader.Data.Machine)
+	if !isValidMachine(p.COFFHeader.Machine) {
+		return nil, fmt.Errorf("unrecognized PE machine: %#x", p.COFFHeader.Machine)
 	}
 
 	// Optional Header.
-	optionalHeaderSize := p.COFFHeader.Data.SizeOfOptionalHeader
+	optionalHeaderSize := p.COFFHeader.SizeOfOptionalHeader
 	if optionalHeaderSize > 0 {
 		var magicBytes [2]byte
 
@@ -78,9 +78,9 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		magic := binary.LittleEndian.Uint16(magicBytes[:])
 		switch magic {
 		case PE32Magic:
-			p.OptionalHeader32, err = NewHeader[pe.OptionalHeader32](reader, &offset)
+			p.OptionalHeader32, err = readHeader[pe.OptionalHeader32](reader, &offset)
 		case PE32PlusMagic:
-			p.OptionalHeader64, err = NewHeader[pe.OptionalHeader64](reader, &offset)
+			p.OptionalHeader64, err = readHeader[pe.OptionalHeader64](reader, &offset)
 		default:
 			err = fmt.Errorf("invalid optional header magic: %#x", magic)
 		}
@@ -91,9 +91,9 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 
 		var expectedSize uint16
 		if p.OptionalHeader32 != nil {
-			expectedSize = uint16(p.OptionalHeader32.Size())
+			expectedSize = uint16(binary.Size(p.OptionalHeader32))
 		} else {
-			expectedSize = uint16(p.OptionalHeader64.Size())
+			expectedSize = uint16(binary.Size(p.OptionalHeader64))
 		}
 
 		if optionalHeaderSize != expectedSize {

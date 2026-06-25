@@ -5,32 +5,23 @@ import (
 	"io"
 )
 
-// Header wraps a PE header data structure.
-type Header[T any] struct {
-	Data T
-}
-
-// NewHeader reads a header of type T from reader at the given offset, advances the offset by the size of T, and returns the header.
-func NewHeader[T any](reader io.ReaderAt, offset *int64) (*Header[T], error) {
-	h := Header[T]{}
-	size := h.Size()
+// readHeader reads a header of type T from reader at the given offset, advancing the offset by the size of the header.
+// Returns a pointer to the newly read header or an error if reading failed.
+func readHeader[T any](reader io.ReaderAt, offset *int64) (*T, error) {
+	h := new(T)
+	size := int64(binary.Size(h))
 	r := io.NewSectionReader(reader, *offset, size)
-	err := binary.Read(r, binary.LittleEndian, &h.Data)
+	err := binary.Read(r, binary.LittleEndian, h)
 	if err != nil {
 		return nil, err
 	}
 	*offset += size
-	return &h, nil
+	return h, nil
 }
 
-// Size returns the size of the header data in bytes.
-func (h *Header[T]) Size() int64 {
-	return int64(binary.Size(h.Data))
-}
-
-// Write serializes the header data to the writer in little-endian byte order.
-func (h *Header[T]) Write(writer io.Writer) error {
-	return binary.Write(writer, binary.LittleEndian, h.Data)
+// writeHeader serializes the header data to the writer in little-endian byte order.
+func writeHeader(writer io.Writer, h any) error {
+	return binary.Write(writer, binary.LittleEndian, h)
 }
 
 // DOSHeader contains the DOS header data.
@@ -60,8 +51,8 @@ type DOSHeader struct {
 type PESignature uint32
 
 const (
-	DOSHeaderMagic   uint16      = 0x5a4d       // 'M', 'Z'
-	PESignatureMagic PESignature = 0x00004550   // 'P', 'E', 0, 0
+	DOSHeaderMagic   uint16      = 0x5a4d     // 'M', 'Z'
+	PESignatureMagic PESignature = 0x00004550 // 'P', 'E', 0, 0
 	PE32Magic                    = 0x10b
 	PE32PlusMagic                = 0x20b
 )
