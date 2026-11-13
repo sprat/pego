@@ -13,8 +13,9 @@ type PE struct {
 	DOSStub          *Segment
 	PESignature      *PESignature
 	COFFHeader       *pe.FileHeader
-	OptionalHeader32 *pe.OptionalHeader32
-	OptionalHeader64 *pe.OptionalHeader64
+	OptionalHeader32 *OptionalHeader32
+	OptionalHeader64 *OptionalHeader64
+	DataDirectories  []pe.DataDirectory
 }
 
 // NewPE parses a Portable Executable or plain COFF file from reader.
@@ -68,6 +69,8 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 	optionalHeaderSize := p.COFFHeader.SizeOfOptionalHeader
 	if optionalHeaderSize > 0 {
 		var magicBytes [2]byte
+		var numDirs uint32
+		var baseSize int64
 
 		// Read the magic number to determine if it's PE32 or PE32+.
 		_, err = reader.ReadAt(magicBytes[:], offset)
@@ -78,9 +81,17 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 		magic := binary.LittleEndian.Uint16(magicBytes[:])
 		switch magic {
 		case PE32Magic:
-			p.OptionalHeader32, err = readHeader[pe.OptionalHeader32](reader, &offset)
+			p.OptionalHeader32, err = readHeader[OptionalHeader32](reader, &offset)
+			if err == nil {
+				numDirs = p.OptionalHeader32.NumberOfRvaAndSizes
+				baseSize = int64(binary.Size(p.OptionalHeader32))
+			}
 		case PE32PlusMagic:
-			p.OptionalHeader64, err = readHeader[pe.OptionalHeader64](reader, &offset)
+			p.OptionalHeader64, err = readHeader[OptionalHeader64](reader, &offset)
+			if err == nil {
+				numDirs = p.OptionalHeader64.NumberOfRvaAndSizes
+				baseSize = int64(binary.Size(p.OptionalHeader64))
+			}
 		default:
 			err = fmt.Errorf("invalid optional header magic: %#x", magic)
 		}
@@ -89,16 +100,17 @@ func NewPE(reader io.ReaderAt) (*PE, error) {
 			return nil, err
 		}
 
-		var expectedSize uint16
-		if p.OptionalHeader32 != nil {
-			expectedSize = uint16(binary.Size(p.OptionalHeader32))
-		} else {
-			expectedSize = uint16(binary.Size(p.OptionalHeader64))
+		p.DataDirectories, err = parseDataDirectories(reader, &offset, numDirs, int64(optionalHeaderSize), baseSize)
+		if err != nil {
+			return nil, err
 		}
 
-		if optionalHeaderSize != expectedSize {
-			return nil, fmt.Errorf("optional header size does not match the expected size: %#x != %#x", optionalHeaderSize, expectedSize)
-		}
+		/*
+			TODO: repair this
+			if optionalHeaderSize != expectedSize {
+				return nil, fmt.Errorf("optional header size does not match the expected size: %#x != %#x", optionalHeaderSize, expectedSize)
+			}
+		*/
 	}
 
 	// TODO: add protections to defend against malicious files (e.g. oversized segments...)
@@ -140,4 +152,23 @@ func isValidMachine(machine uint16) bool {
 		return true
 	}
 	return false
+}
+
+func parseDataDirectories(reader io.ReaderAt, offset *int64, numDirs uint32, size int64, baseSize int64) ([]pe.DataDirectory, error) {
+	if numDirs > 16 {
+		return nil, fmt.Errorf("NumberOfRvaAndSizes exceeds maximum: %d > %d", numDirs, 16)
+	}
+	if size < baseSize+int64(numDirs)*8 {
+		return nil, fmt.Errorf("optional header too small for NumberOfRvaAndSizes: %#x < %#x", size, baseSize+int64(numDirs)*8)
+	}
+	dirs := make([]pe.DataDirectory, numDirs)
+	for i := range dirs {
+		dir, err := readHeader[pe.DataDirectory](reader, offset)
+		if err != nil {
+			return nil, err
+		}
+		dirs[i] = *dir
+	}
+	*offset += size - baseSize - int64(numDirs)*8
+	return dirs, nil
 }
